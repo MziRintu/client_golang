@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"strconv"
 	"sync"
@@ -50,6 +51,7 @@ type HistogramSpecification struct {
 	BucketBuilder         BucketBuilder
 	ReportablePercentiles []float64
 	Starts                []float64
+	ResetInterval         time.Duration
 }
 
 type Histogram interface {
@@ -189,17 +191,22 @@ func (h histogram) bucketForPercentile(signature string, percentile float64) (*B
 
 	histogram := h.values[signature]
 
+	log.Println(signature, percentile)
+
 	for i, bucket := range histogram.buckets {
 		observations := bucket.Observations()
 		observationsByBucket[i] = observations
 		totalObservations += bucket.Observations()
 		cumulativeObservationsByBucket[i] = totalObservations
+		log.Println(i, observations, totalObservations)
 	}
 
 	// This captures the index offset where the given percentile value would be
 	// were all submitted samples stored and never down-/re-sampled nor deleted
 	// and housed in a singular array.
 	prospectiveIndex := prospectiveIndexForPercentile(percentile, totalObservations)
+
+	log.Println(prospectiveIndex)
 
 	for i, cumulativeObservation := range cumulativeObservationsByBucket {
 		if cumulativeObservation == 0 {
@@ -208,6 +215,8 @@ func (h histogram) bucketForPercentile(signature string, percentile float64) (*B
 
 		// Find the bucket that contains the given index.
 		if cumulativeObservation >= prospectiveIndex {
+			log.Println("at bucket", i)
+
 			var subIndex int
 			// This calculates the index within the current bucket where the given
 			// percentile may be found.

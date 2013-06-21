@@ -44,6 +44,7 @@ func (s Samples) Len() int {
 }
 
 func (s Samples) Less(i, j int) bool {
+	panic("wee")
 	switch {
 	case s[i].Metric.Before(s[j].Metric):
 		return true
