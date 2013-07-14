@@ -32,13 +32,13 @@ type gaugeVector struct {
 
 func NewGauge() Gauge {
 	return &gauge{
-		values: map[uint64]*gaugeVector{},
+		values: map[uint64]gaugeVector{},
 	}
 }
 
 type gauge struct {
 	mutex  sync.RWMutex
-	values map[uint64]*gaugeVector
+	values map[uint64]gaugeVector
 }
 
 func (metric *gauge) String() string {
@@ -63,7 +63,7 @@ func (metric *gauge) Set(labels map[string]string, value float64) float64 {
 	if original, ok := metric.values[signature]; ok {
 		original.Value = value
 	} else {
-		metric.values[signature] = &gaugeVector{
+		metric.values[signature] = gaugeVector{
 			Labels: labels,
 			Value:  value,
 		}
@@ -88,7 +88,7 @@ func (metric *gauge) MarshalJSON() ([]byte, error) {
 	metric.mutex.RLock()
 	defer metric.mutex.RUnlock()
 
-	values := make([]*gaugeVector, 0, len(metric.values))
+	values := make([]gaugeVector, 0, len(metric.values))
 	for _, value := range metric.values {
 		values = append(values, value)
 	}

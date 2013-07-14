@@ -35,13 +35,13 @@ type counterVector struct {
 
 func NewCounter() Counter {
 	return &counter{
-		values: map[uint64]*counterVector{},
+		values: map[uint64]counterVector{},
 	}
 }
 
 type counter struct {
 	mutex  sync.RWMutex
-	values map[uint64]*counterVector
+	values map[uint64]counterVector
 }
 
 func (metric *counter) Set(labels map[string]string, value float64) float64 {
@@ -56,7 +56,7 @@ func (metric *counter) Set(labels map[string]string, value float64) float64 {
 	if original, ok := metric.values[signature]; ok {
 		original.Value = value
 	} else {
-		metric.values[signature] = &counterVector{
+		metric.values[signature] = counterVector{
 			Labels: labels,
 			Value:  value,
 		}
@@ -98,7 +98,7 @@ func (metric *counter) IncrementBy(labels map[string]string, value float64) floa
 	if original, ok := metric.values[signature]; ok {
 		original.Value += value
 	} else {
-		metric.values[signature] = &counterVector{
+		metric.values[signature] = counterVector{
 			Labels: labels,
 			Value:  value,
 		}
@@ -123,7 +123,7 @@ func (metric *counter) DecrementBy(labels map[string]string, value float64) floa
 	if original, ok := metric.values[signature]; ok {
 		original.Value -= value
 	} else {
-		metric.values[signature] = &counterVector{
+		metric.values[signature] = counterVector{
 			Labels: labels,
 			Value:  -1 * value,
 		}
@@ -140,7 +140,7 @@ func (metric *counter) MarshalJSON() ([]byte, error) {
 	metric.mutex.RLock()
 	defer metric.mutex.RUnlock()
 
-	values := make([]*counterVector, 0, len(metric.values))
+	values := make([]counterVector, 0, len(metric.values))
 
 	for _, value := range metric.values {
 		values = append(values, value)

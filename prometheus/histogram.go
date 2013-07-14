@@ -79,7 +79,7 @@ type histogram struct {
 	// These are the buckets that capture samples as they are emitted to the
 	// histogram.  Please consult the reference interface and its implements for
 	// further details about behavior expectations.
-	values map[uint64]*histogramVector
+	values map[uint64]histogramVector
 	// These are the percentile values that will be reported on marshalling.
 	reportablePercentiles []float64
 }
@@ -98,12 +98,12 @@ func (h *histogram) Add(labels map[string]string, value float64) {
 	}
 
 	signature := labelsToSignature(labels)
-	var histogram *histogramVector = nil
+	var histogram histogramVector
 	if original, ok := h.values[signature]; ok {
 		histogram = original
 	} else {
 		bucketCount := len(h.bucketStarts)
-		histogram = &histogramVector{
+		histogram = histogramVector{
 			buckets: make([]Bucket, bucketCount),
 			labels:  labels,
 		}
@@ -288,7 +288,7 @@ func NewHistogram(specification *HistogramSpecification) Histogram {
 		bucketMaker:           specification.BucketBuilder,
 		bucketStarts:          specification.Starts,
 		reportablePercentiles: specification.ReportablePercentiles,
-		values:                map[uint64]*histogramVector{},
+		values:                map[uint64]histogramVector{},
 	}
 
 	return metric

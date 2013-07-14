@@ -50,7 +50,7 @@ type container struct {
 	name       string
 }
 
-type containers []*container
+type containers []container
 
 func (c containers) Len() int {
 	return len(c)
@@ -66,7 +66,7 @@ func (c containers) Less(i, j int) bool {
 
 type registry struct {
 	mutex               sync.RWMutex
-	signatureContainers map[uint64]*container
+	signatureContainers map[uint64]container
 }
 
 // Registry is a registrar where metrics are listed.
@@ -88,7 +88,7 @@ type Registry interface {
 // cases.
 func NewRegistry() Registry {
 	return &registry{
-		signatureContainers: make(map[uint64]*container),
+		signatureContainers: make(map[uint64]container),
 	}
 }
 
@@ -181,7 +181,7 @@ func (r *registry) Register(name, docstring string, baseLabels map[string]string
 		return err
 	}
 
-	r.signatureContainers[signature] = &container{
+	r.signatureContainers[signature] = container{
 		BaseLabels: baseLabels,
 		Docstring:  docstring,
 		Metric:     metric,
